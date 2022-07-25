@@ -49,7 +49,7 @@ class AVR(object):
             print(Section)
             self.AddCommand('SP' + Section)
         self.AddCommand('CH0')     # Normal priority mode
-            
+    
     def FixPosition(self, Position):
         Position = Position / 100
 
@@ -92,14 +92,15 @@ class AVR(object):
             Fields = Parameters.split(',')
             
             if Fields[1] != '':
-                self.GPSPosition['time'] = datetime.datetime.strptime(Fields[0] + ' ' + Fields[1], '%d/%m/%Y %H:%M:%S')
+                # self.GPSPosition['time'] = datetime.datetime.strptime(Fields[0] + ' ' + Fields[1], '%d/%m/%Y %H:%M:%S')
+                self.GPSPosition['time'] = Fields[0]
 
-                if Fields[1] != '':
-                    self.GPSPosition['lat'] = float(Fields[2])
-                    self.GPSPosition['lon'] = float(Fields[3])
-                    self.GPSPosition['alt'] = float(Fields[4])
+                if Fields[0] != '':
+                    self.GPSPosition['lat'] = float(Fields[1])
+                    self.GPSPosition['lon'] = float(Fields[2])
+                    self.GPSPosition['alt'] = float(Fields[3])
 
-                self.GPSPosition['sats'] = int(Fields[5])
+                self.GPSPosition['sats'] = int(Fields[4])
                 
                 # Replace with data from NMEA file ?
                 if self.GPSFile:
@@ -108,7 +109,6 @@ class AVR(object):
                 if self._WhenNewPosition:
                     self._WhenNewPosition(self.GPSPosition)
         elif Command == 'LORA':
-
             if self._WhenNewSentence:
                 self._WhenNewSentence(Parameters)
         elif Command == 'BATT':
@@ -127,7 +127,8 @@ class AVR(object):
             self.Sensors['version'] = Parameters
             if self._WhenNewVersion:
                 self._WhenNewVersion(self.Sensors['version'])
-
+        elif Command == 'MODE':
+            pass
         else:
            print("UNKNOWN RESPONSE " + Command + '=' + Parameters)
 
@@ -168,14 +169,14 @@ class AVR(object):
 
                     if len(Line) > 256:
                         Line = ''
-                    elif Character != '\r':
-                        if Character == '\n':
-                            self.ProcessLine(Line)
-                            
+                    elif Character in {'\r', '\n'}:
+                        if Line != '':
+                            self.ProcessLine(Line)                           
                             Line = ''
-                            time.sleep(0.01)
-                        else:
-                            Line = Line + Character
+                            
+                            # time.sleep(0.01)
+                    else:
+                        Line = Line + Character
                 else:
                     if not HighPriorityMode:
                         time.sleep(0.01)
@@ -183,8 +184,7 @@ class AVR(object):
                 
                 if self.CanSendNextCommand or (TimeOut <= 0):
                     if len(self.Commands) > 0:
-                        # print("CAN SEND")
-                        Command = '~' + self.Commands[0] + '\r\n'
+                        Command = '~' + self.Commands[0] + '\r'     # \n'
                         self.ser.write(Command.encode())
                         print ('TX: ' + self.Commands[0])
                         if self.Commands[0] == 'CH1':

@@ -235,6 +235,9 @@ class Tracker(object):
             self.avr.AddCommand('AT' + str(self.Settings_APRS_TelemInterval))
 
         self.avr.AddCommand('CS');			# Store settings
+        self.avr.AddCommand('CS');			# Store settings
+        self.avr.AddCommand('CS');			# Store settings
+        self.avr.AddCommand('CS');			# Store settings
     
 
     def set_lora(self, payload_id='CHANGEME', channel=0, frequency=424.250, mode=1, camera=False, image_packet_ratio=6):
